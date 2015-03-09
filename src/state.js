@@ -1008,7 +1008,7 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
         }
       } else if (isString(options.reload) || isObject(options.reload)) {
         skipTriggerReloadCheck = true;
-        var stateName = options.reload.toString();
+        var stateName = isString(options.reload) ? options.reload : options.reload.name;
         if (!isDefined(findState(stateName))) {
           throw new Error("No such state '" + stateName + "'");
         }

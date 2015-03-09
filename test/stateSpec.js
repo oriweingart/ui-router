@@ -555,7 +555,7 @@ describe('state', function () {
       expect(log).toBe('Success!controller;Success!controller;');
     }));
 
-    it('should invoke the controllers by state', inject(function ($state, $q, $timeout, $rootScope, $compile) {
+    it('should invoke the controllers by state when given state name', inject(function ($state, $q, $timeout, $rootScope, $compile) {
       $compile('<div> <div ui-view/></div>')($rootScope);
       $state.transitionTo('logA.logB.logC');
       $q.flush();
@@ -575,10 +575,47 @@ describe('state', function () {
       $state.reload('logA.logB.logC');
       $q.flush();
       expect(log).toBe('logC;');
-
     }));
 
-    it('should throw an exception for invalid reload state', inject(function ($state, $q, $timeout, $rootScope, $compile) {
+    it('should reload all states when passing false', inject(function ($state, $q, $timeout, $rootScope, $compile) {
+      $compile('<div> <div ui-view/></div>')($rootScope);
+      $state.transitionTo('logA.logB.logC');
+      $q.flush();
+      expect(log).toBe('logA;logB;logC;');
+
+      log = '';
+      $state.reload(false);
+      $q.flush();
+      expect(log).toBe('logA;logB;logC;');
+    }));
+
+    it('should reload all states when passing true', inject(function ($state, $q, $timeout, $rootScope, $compile) {
+      $compile('<div> <div ui-view/></div>')($rootScope);
+      $state.transitionTo('logA.logB.logC');
+      $q.flush();
+      expect(log).toBe('logA;logB;logC;');
+
+      log = '';
+      $state.reload(true);
+      $q.flush();
+      expect(log).toBe('logA;logB;logC;');
+    }));
+
+
+    it('should invoke the controllers by state when given stateObj', inject(function ($state, $q, $timeout, $rootScope, $compile) {
+      $compile('<div> <div ui-view/></div>')($rootScope);
+      $state.transitionTo('logA.logB.logC');
+
+      $q.flush();
+      expect(log).toBe('logA;logB;logC;');
+
+      log = '';
+      $state.reload($state.current);
+      $q.flush();
+      expect(log).toBe('logC;');
+    }));
+
+    it('should throw an exception for invalid reload state name', inject(function ($state, $q, $timeout, $rootScope, $compile) {
       $compile('<div> <div ui-view/></div>')($rootScope);
       $state.transitionTo('logA.logB.logC');
       $q.flush();
@@ -587,6 +624,17 @@ describe('state', function () {
       expect(function(){
           $state.reload('logInvalid')}
         ).toThrow("No such state 'logInvalid'");
+    }));
+
+    it('should throw an exception for invalid reload state object', inject(function ($state, $q, $timeout, $rootScope, $compile) {
+      $compile('<div> <div ui-view/></div>')($rootScope);
+      $state.transitionTo('logA.logB.logC');
+      $q.flush();
+      expect(log).toBe('logA;logB;logC;');
+
+      expect(function(){
+          $state.reload({})}
+        ).toThrow("No such state 'undefined'");
     }));
   });
 
