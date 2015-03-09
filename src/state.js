@@ -846,7 +846,8 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
      * {@link ui.router.state.$state#methods_go $state.go}.
      */
     $state.reload = function reload(state) {
-      return $state.transitionTo($state.current, $stateParams, { reload: true, inherit: false, notify: true, reloadState: state });
+      var stateToReload = isDefined(state) ? state : true;
+      return $state.transitionTo($state.current, $stateParams, { reload: stateToReload, inherit: false, notify: true});
     };
 
     /**
@@ -962,7 +963,7 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
     $state.transitionTo = function transitionTo(to, toParams, options) {
       toParams = toParams || {};
       options = extend({
-        location: true, inherit: false, relative: null, notify: true, reload: false, $retry: false, reloadState : null
+        location: true, inherit: false, relative: null, notify: true, reload: false, $retry: false
       }, options || {});
 
       var from = $state.$current, fromParams = $state.params, fromPath = from.path;
@@ -999,19 +1000,21 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
 
       // Starting from the root of the path, keep all levels that haven't changed
       var keep = 0, state = toPath[keep], locals = root.locals, toLocals = [];
-
+      var skipTriggerReloadCheck = false;
       if (!options.reload) {
         while (state && state === fromPath[keep] && state.ownParams.$$equals(toParams, fromParams)) {
           locals = toLocals[keep] = state.locals;
           keep++;
           state = toPath[keep];
         }
-      } else if (options.reloadState) {
-        if (!isDefined(findState(options.reloadState))) {
-          throw new Error("No such state '" + options.reloadState + "'");
+      } else if (isString(options.reload) || isObject(options.reload)) {
+        skipTriggerReloadCheck = true;
+        var stateName = options.reload.toString();
+        if (!isDefined(findState(stateName))) {
+          throw new Error("No such state '" + stateName + "'");
         }
 
-        while (state && state === fromPath[keep] && state.toString().toLowerCase() !== options.reloadState.toLowerCase()) {
+        while (state && state === fromPath[keep] && state.toString().toLowerCase() !== stateName.toLowerCase()) {
           locals = toLocals[keep] = state.locals;
           keep++;
           state = toPath[keep];
@@ -1023,7 +1026,7 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
       // TODO: We may not want to bump 'transition' if we're called from a location change
       // that we've initiated ourselves, because we might accidentally abort a legitimate
       // transition initiated from code?
-      if (!options.reloadState && shouldTriggerReload(to, from, locals, options)) {
+      if (!skipTriggerReloadCheck && shouldTriggerReload(to, from, locals, options)) {
         if (to.self.reloadOnSearch !== false) $urlRouter.update();
         $state.transition = null;
         return $q.when($state.current);
