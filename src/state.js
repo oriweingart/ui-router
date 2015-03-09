@@ -820,7 +820,7 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
      * });
      * </pre>
      *
-     * @param {string} state A state name which is the root of the resolves to re-resolved.
+     * @param {string=|object=} state - A state name or a state object, which is the root of the resolves to be re-resolved.
      * @example
      * <pre>
      * //assuming app application consists of 3 states: 'contacts', 'contacts.detail', 'contacts.detail.item' 
@@ -846,8 +846,7 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
      * {@link ui.router.state.$state#methods_go $state.go}.
      */
     $state.reload = function reload(state) {
-      var stateToReload = isDefined(state) ? state : true;
-      return $state.transitionTo($state.current, $stateParams, { reload: stateToReload, inherit: false, notify: true});
+      return $state.transitionTo($state.current, $stateParams, { reload: state || true, inherit: false, notify: true});
     };
 
     /**
@@ -951,11 +950,11 @@ function $StateProvider(   $urlRouterProvider,   $urlMatcherFactory) {
      * - **`relative`** - {object=}, When transitioning with relative path (e.g '^'), 
      *    defines which state to be relative from.
      * - **`notify`** - {boolean=true}, If `true` will broadcast $stateChangeStart and $stateChangeSuccess events.
-     * - **`reload`** (v0.2.5) - {boolean=false}, If `true` will force transition even if the state or params 
+     * - **`reload`** (v0.2.5) - {boolean=false|string=|object=}, If `true` will force transition even if the state or params 
      *    have not changed, aka a reload of the same state. It differs from reloadOnSearch because you'd
      *    use this when you want to force a reload when *everything* is the same, including search params.
-     * - **'reloadState'** - {string=null}, A state name which will be the root state to reload from.
-     *    should be used with options.reload=true 
+     *    if String, then will reload the state with the name given in reload, and any children.
+     *    if Object, then a stateObj is expected, will reload the state found in stateObj, and any chhildren.
      *
      * @returns {promise} A promise representing the state of the new transition. See
      * {@link ui.router.state.$state#methods_go $state.go}.
